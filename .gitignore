@@ -1,2 +1,4 @@
 # ignore test-code
 code/test/
+# ignore data
+data/
