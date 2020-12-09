@@ -1,4 +1,4 @@
 # ignore test-code
-code/test/
+src/test/
 # ignore .vscode
 .vscode/
