@@ -36,6 +36,14 @@ logging.basicConfig(
                     level=logging.INFO)
 logger = logging.getLogger("NED")
 
+# logistic regression model
+class LogisticRegression(torch.nn.Module):
+    def __init__(self):
+        super(LogisticRegression, self).__init__()
+        self.linear = torch.nn.Linear(2, 1)
+    def forward(self, x):
+        y_pred = torch.sigmoid(self.linear(x))
+        return y_pred
 
 
 # fully connected layer
@@ -92,7 +100,7 @@ def always_true(dataset):
     """
     # once the a.name == b.name, then we consider it as true.
     y_pred = np.ones(len(dataset))
-    y_truth = dataset[:, 2]
+    y_truth = dataset[:, -1]
     # show the precision and recall
     logger.info("always_true's precision {0:.3f}".format(precision(y_pred, y_truth)))
     logger.info("always_true's recall {0:.3f}".format(recall(y_pred, y_truth)))
@@ -119,7 +127,7 @@ def scca(graph, dataset):
         return False
     # once they are belong to one component, we will consider them as the same entity.
     y_pred = np.array(list(map(is_same_group, dataset[:,0], dataset[:, 1])))
-    y_truth = dataset[:, 2]
+    y_truth = dataset[:, -1]
     # show the precision and recall
     logger.info("scca's precision {0:.3f}".format(precision(y_pred, y_truth)))
     logger.info("scca's recall {0:.3f}".format(recall(y_pred, y_truth)))
@@ -162,11 +170,11 @@ def shallow_embedding(graph, train, test, args):
     
     # create real training set and test set
     def pair2vec(u, v):
-        u_vec = embeddings.iloc[u, 1:].values
-        v_vec = embeddings.iloc[v, 1:].values
+        u_vec = embeddings.iloc[int(u), 1:].values
+        v_vec = embeddings.iloc[int(v), 1:].values
         return np.abs(u_vec - v_vec)
     train_x = torch.from_numpy(np.array(list(map(pair2vec, train[:, 0], train[:, 1]))))
-    train_y = torch.from_numpy(train[:,2])
+    train_y = torch.from_numpy(train[:,-1])
     test_x = torch.from_numpy(np.array(list(map(pair2vec, test[:, 0], test[:, 1]))))
     
     # create the fully connected nn.
@@ -191,7 +199,7 @@ def shallow_embedding(graph, train, test, args):
     with torch.no_grad():
         logits = fc(test_x.float())
         y_pred = (logits > 0.5).float().squeeze(dim = -1).numpy()
-        y_truth = test[:, 2].ravel()
+        y_truth = test[:, -1].ravel()
         # show the precision and recall
         logger.info("node2vec's precision {0:.3f}".format(precision(y_pred, y_truth)))
         logger.info("node2vec's recall {0:.3f}".format(recall(y_pred, y_truth)))
@@ -212,11 +220,18 @@ def gcn(graph, train, test, args):
     # define the model.
     gcn_model = GCN(args.embed)
     fc_model = FC(args.embed, args.hidden)
+    if args.area:
+        lr_model = LogisticRegression()
     logger.info(gcn_model)
     logger.info(fc_model)
+    if args.area:
+        logger.info(lr_model)
 
     # starts training
-    optimizer = torch.optim.Adam(itertools.chain(fc_model.parameters(), gcn_model.parameters(), embed.parameters()), lr=args.lr)
+    if args.area:
+        optimizer = torch.optim.Adam(itertools.chain(lr_model.parameters(), fc_model.parameters(), gcn_model.parameters(), embed.parameters()), lr=args.lr)
+    else:
+        optimizer = torch.optim.Adam(itertools.chain(fc_model.parameters(), gcn_model.parameters(), embed.parameters()), lr=args.lr)
     for epoch in range(args.max_itr * 4):
         inputs = embed.weight
 
@@ -225,16 +240,21 @@ def gcn(graph, train, test, args):
         
         # define the function which will be used later for creating real dataset
         def pair2vec(u, v):
-            u_vec = embeds[u, 0:]
-            v_vec = embeds[v, 0:]
+            u_vec = embeds[int(u), 0:]
+            v_vec = embeds[int(v), 0:]
             return torch.abs(u_vec - v_vec).detach().numpy()
 
         # create real training set and test set    
 
         train_x = torch.from_numpy(np.array(list(map(pair2vec, train[:, 0], train[:, 1])))).float()
-        train_y = torch.from_numpy(train[:,2]).float()
-
+        train_y = torch.from_numpy(train[:,-1]).float()
         logits = fc_model(train_x)
+
+        if args.area:
+            train_area = torch.from_numpy(train[:,2]).float()
+            train_area = torch.reshape(train_area, (-1,1))
+            logits = lr_model(torch.cat((logits, train_area), 1))
+
         loss = nn.BCELoss()(logits.squeeze(dim = -1), train_y.squeeze(dim = -1))
 
         optimizer.zero_grad()
@@ -247,8 +267,14 @@ def gcn(graph, train, test, args):
             with torch.no_grad():
                 test_x = torch.from_numpy(np.array(list(map(pair2vec, test[:, 0], test[:, 1])))).float()
                 logits = fc_model(test_x)
+
+                if args.area:
+                    test_area = torch.from_numpy(test[:,2]).float()
+                    test_area = torch.reshape(test_area, (-1, 1))
+                    logits = lr_model(torch.cat((logits, test_area), 1))
+
                 y_pred = (logits >= 0.5).float().squeeze(dim = -1).numpy()
-                y_truth = test[:, 2].ravel()
+                y_truth = test[:, -1].ravel()
                 # show the precision and recall
                 logger.info("gcn's precision {0:.3f}".format(precision(y_pred, y_truth)))
                 logger.info("gcn's recall {0:.3f}".format(recall(y_pred, y_truth)))
@@ -335,6 +361,10 @@ def args_parser():
     # set if fit a new node2vec model
     parser.add_argument("-f", "--fit", action= "store_true", dest= "fit", 
                         help= "enable fit a new node2vec model.")
+
+    # set if using debug mod
+    parser.add_argument("-a", "--area", action= "store_true", dest= "area", 
+                        help= "enable area and logistic regression to improve the model")
 
     # set if using debug mod
     parser.add_argument("-v", "--verbose", action= "store_true", dest= "verbose", 
