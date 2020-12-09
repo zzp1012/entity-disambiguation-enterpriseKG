@@ -293,6 +293,12 @@ def data_splitting(split_ratio):
         os._exit(0)
     # shuffle the data
     np.random.shuffle(dataset)
+    
+    # check split_ratio
+    if split_ratio < 0 or len(dataset) - round(len(dataset) * split_ratio) < 5:
+        logger.warning("The splitting ratio is illegal. Turn to Default 0.7")
+        split_ratio = 0.7
+    
     # create train and test
     train = dataset[0:round(len(dataset) * split_ratio)]
     test = dataset[round(len(dataset) * split_ratio):]
@@ -371,6 +377,27 @@ def args_parser():
                         help= "enable debug info output.")
 
     args = parser.parse_args()
+
+    # check if the walk length is illegal.
+    if args.walk_len < 5 or args.walk_len > 1000:
+        logger.warning("The walk length for running node2vec is illegal. Turn to default 30.")
+        args.walk_len = 30
+    
+    # check if the number of walks is illegal.
+    if args.num_walks < 20 or args.num_walks > 1000:
+        logger.warning("The number of walks for running node2vec is illegal. Turn to default 200.")
+        args.num_walks = 200
+
+    # check if the size of embedding vector is illegal.
+    if args.embed < 2 or args.embed > 100:
+        logger.warning("The size of embedding vector is illegal. Turn to default 10.")
+        args.embed = 10
+
+    # check if the walk length is illegal
+    if args.hidden > args.embed or args.hidden < 1:
+        logger.warning("The size of hidden layer of full connected layer is illegal. Turn to default round(0.8 * args.embed).")
+        args.hidden = round(0.8 * args.embed)
+
     return args
 
 
@@ -418,5 +445,7 @@ def main():
     gcn(graph, train, test, args)
 
     logger.info("-------------End evaluation-------------")
+
+
 if __name__ == "__main__":
     main()
