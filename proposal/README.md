@@ -1,5 +1,5 @@
 <div style="text-align:center">
-	<img src="../figures/ji_logo.png" alt="Jilogo" style="zoom:40%;" />
+	<img src="../images/ji_logo.png" alt="Jilogo" style="zoom:40%;" />
 </div>
 <center>
 	<h2>
