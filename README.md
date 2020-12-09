@@ -26,6 +26,59 @@ This project is used to help our VE444 Project team work together.
 
 Once we open source the code for `20FA VE444 term Project` and if you want to refer to our work, please follow the Joint Institute’s honor code and don’t plagiarize these codes directly.
 
+### Repo Structure
+
+```bash
+├── data
+│   ├── com2com.csv # contains the investment relationships between companies.
+│   ├── com_info.csv # contains the basic information about the companies.
+│   ├── labels.csv # contains the tuple of investors with same name and a label indicating whether
+|   |              # they are the same entity or not
+│   └── person2com.csv # contains the investment relationships between companies and investor.
+├── images # basically contain some images.
+├── milestone-rpt
+│   ├── milestone-rpt.md # the source code of milestone-rpt.
+│   └── milestone-rpt.pdf # and the pdf version of milestone-rpt
+├── poster
+│   ├── 444_poster.pdf # the final version of poster
+│   └── 444_poster.pptx # the template of the poster
+├── prior # under this directory, some prior works are included.
+│   ├── code
+│   │   ├── company_information_cleaning.ipynb
+│   │   ├── data_processing.ipynb
+│   │   └── stock_analysis.py
+│   ├── README.md
+│   └── reference
+│       ├── Enterprise-KG-Paper.pdf
+│       ├── Enterprise-KG-Slides.pdf
+│       ├── graph-database-overview.pdf
+│       └── neo4j-algorithms.pdf
+├── proposal
+│   ├── Proposal.md # the source code of proposal
+│   ├── Proposal.pdf # the final pdf version of proposal 
+│   └── README.md # the ideas of the projects.
+├── README.md # overview of the repo, readme
+└── src 
+    ├── NED-benchmark.py # the only source code of our project, used to benchmark different methods to
+    |                    #solve NED problem
+    └── pretrained
+        └── node2vec-embedd.txt # the pretrained node embedding vectors using node2vec.
+```
+
+### Usage
+
+To benchmark different methods to resolve the NED problem in enterprise KG. Please run following instruction:
+
+```bash
+python ./src/NED-benchmark.py --max_itr 1000 --split_ratio 0.7 --seed 10
+```
+
+For detailed usage, please check:
+
+```bash
+python ./src/NED-benchmark.py --help
+```
+
 ### Code Style
 
 **Example**:

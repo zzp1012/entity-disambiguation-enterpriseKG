@@ -222,7 +222,6 @@ def shallow_embedding(graph, train, test, args):
     logger.info("node2vec's recall {0:.3f}".format(recall(y_pred, y_truth)))
 
 
-
 def gcn(graph, train, test, args):
     """
     graph: the undirect graph.
@@ -248,7 +247,7 @@ def gcn(graph, train, test, args):
         optimizer = torch.optim.Adam(itertools.chain(lr_model.parameters(), fc_model.parameters(), gcn_model.parameters(), embed.parameters()), lr=args.lr)
     else:
         optimizer = torch.optim.Adam(itertools.chain(fc_model.parameters(), gcn_model.parameters(), embed.parameters()), lr=args.lr)
-    for epoch in range(args.max_itr * 4):
+    for epoch in range(round(args.max_itr * 1.5)):
         inputs = embed.weight
 
         # compute the embedding vectors
