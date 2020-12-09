@@ -1,0 +1,33 @@
+{
+    "os": "Linux-4.15.0-65-generic-x86_64-with-glibc2.10",
+    "python": "3.8.3",
+    "heartbeatAt": "2020-12-09T07:06:15.959448",
+    "startedAt": "2020-12-09T07:06:12.566389",
+    "docker": null,
+    "gpu": "GeForce GTX 1080 Ti",
+    "gpu_count": 4,
+    "cpu_count": 40,
+    "cuda": "10.1.243",
+    "args": [
+        "--conv",
+        "3",
+        "--max_itr",
+        "1000",
+        "--seed",
+        "10",
+        "--split_ratio",
+        "0.7"
+    ],
+    "state": "running",
+    "codePath": "src/NED-benchmark.py",
+    "program": "NED-benchmark.py",
+    "git": {
+        "remote": "https://github.com/zzp1012/named-disambiguation-enterpriseKG.git",
+        "commit": "cf6e302c986e63744c07bb53d2de6cfc8507abd4"
+    },
+    "email": "zzp1012@sjtu.edu.cn",
+    "root": "/home/zzp1012/named-disambiguation-enterpriseKG",
+    "host": "main-server-1",
+    "username": "zzp1012",
+    "executable": "/home/zzp1012/anaconda3/bin/python"
+}

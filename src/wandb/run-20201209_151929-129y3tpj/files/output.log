@@ -1,0 +1,27 @@
+NED INFO ------------Construct graph-------------
+NED INFO Enterprise KG have 11256 nodes.
+NED INFO Enterprise KG have 24358 edges.
+NED INFO -------------Data splitting-------------
+NED INFO -----------Baseline evaluation----------
+NED INFO always_true's precision 0.067
+NED INFO always_true's recall 1.000
+NED INFO scca's precision 0.058
+NED INFO scca's recall 0.833
+NED INFO -----------node2vec evaluation----------
+NED INFO We have already pretrained node embedding vectors, therefore, we turn to use them.
+NED INFO FC(
+  (fc1): Linear(in_features=10, out_features=8, bias=True)
+  (fc2): Linear(in_features=8, out_features=1, bias=True)
+)
+NED-benchmark.py:88: RuntimeWarning: invalid value encountered in double_scalars
+  return np.sum(y_pred * y_truth) / np.sum(y_pred)
+NED INFO node2vec's precision 0.333
+NED INFO node2vec's recall 0.143
+NED INFO -------------GCN evaluation-------------
+NED INFO FC(
+  (fc1): Linear(in_features=10, out_features=8, bias=True)
+  (fc2): Linear(in_features=8, out_features=1, bias=True)
+)
+NED INFO gcn's precision 0.222
+NED INFO gcn's recall 0.286
+NED INFO -------------End evaluation-------------

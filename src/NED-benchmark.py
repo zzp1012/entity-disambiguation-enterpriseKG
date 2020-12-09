@@ -3,6 +3,7 @@ import logging
 import argparse
 import os
 import pathlib
+import wandb
 
 # import machine learing or computing libraries
 import pandas as pd 
@@ -36,6 +37,7 @@ logging.basicConfig(
                     level=logging.INFO)
 logger = logging.getLogger("NED")
 
+
 # logistic regression model
 class LogisticRegression(torch.nn.Module):
     def __init__(self):
@@ -63,15 +65,17 @@ class FC(nn.Module):
 
 # graph convolution network
 class GCN(nn.Module):
-    def __init__(self, embed_size):
+    def __init__(self, embed_size, num_conv):
         super(GCN, self).__init__()
-        self.conv1 = GraphConv(embed_size, embed_size)
-        self.conv2 = GraphConv(embed_size, embed_size)
+        self.convs = [GraphConv(embed_size, embed_size)] * num_conv
+        self.num_conv = num_conv
     
     def forward(self, graph, inputs):
-        h = self.conv1(graph, inputs)
-        h = torch.relu(h)
-        h = self.conv2(graph, h)
+        h = inputs
+        for i in range(self.num_conv - 1):
+            h = self.convs[i](graph, h)
+            h = torch.relu(h)
+        h = self.convs[self.num_conv - 1](graph, h)
         return h
 
 
@@ -176,6 +180,7 @@ def shallow_embedding(graph, train, test, args):
     train_x = torch.from_numpy(np.array(list(map(pair2vec, train[:, 0], train[:, 1]))))
     train_y = torch.from_numpy(train[:,-1])
     test_x = torch.from_numpy(np.array(list(map(pair2vec, test[:, 0], test[:, 1]))))
+    test_y = torch.from_numpy(test[:, -1])
     
     # create the fully connected nn.
     fc = FC(args.embed, args.hidden)
@@ -192,17 +197,29 @@ def shallow_embedding(graph, train, test, args):
         loss.backward()
         optimizer.step()
 
+        y_pred = (logits >= 0.5).float().squeeze(dim = -1).numpy()
+        y_truth = train[:, -1].ravel()
+        wandb.log({"Node2Vec Train/Pre": precision(y_pred, y_truth), "round": epoch})
+        wandb.log({"Node2Vec Train/Rec": recall(y_pred, y_truth), "round": epoch})
+        wandb.log({"Node2Vec Train/loss": loss.item(), "round": epoch})
+
         logger.debug('Epoch %d | Loss: %.4f' % (epoch, loss.item()))
 
-    # evaluate the node2vec method.
-    fc.eval()
-    with torch.no_grad():
-        logits = fc(test_x.float())
-        y_pred = (logits > 0.5).float().squeeze(dim = -1).numpy()
-        y_truth = test[:, -1].ravel()
-        # show the precision and recall
-        logger.info("node2vec's precision {0:.3f}".format(precision(y_pred, y_truth)))
-        logger.info("node2vec's recall {0:.3f}".format(recall(y_pred, y_truth)))
+        # evaluate the node2vec method.
+        fc.eval()
+        with torch.no_grad():
+            logits = fc(test_x.float())
+
+            loss = nn.BCELoss()(logits.squeeze(dim = -1), test_y.float().squeeze(dim = -1))
+            y_pred = (logits >= 0.5).float().squeeze(dim = -1).numpy()
+            y_truth = test[:, -1].ravel()
+            wandb.log({"Node2Vec Test/Pre": precision(y_pred, y_truth), "round": epoch})
+            wandb.log({"Node2Vec Test/Rec": recall(y_pred, y_truth), "round": epoch})
+            wandb.log({"Node2Vec Test/loss": loss.item(), "round": epoch})
+    
+    # show the precision and recall
+    logger.info("node2vec's precision {0:.3f}".format(precision(y_pred, y_truth)))
+    logger.info("node2vec's recall {0:.3f}".format(recall(y_pred, y_truth)))
 
 
 
@@ -218,11 +235,10 @@ def gcn(graph, train, test, args):
     embed = nn.Embedding(graph.number_of_nodes(), args.embed)
 
     # define the model.
-    gcn_model = GCN(args.embed)
+    gcn_model = GCN(args.embed, args.conv)
     fc_model = FC(args.embed, args.hidden)
     if args.area:
         lr_model = LogisticRegression()
-    logger.info(gcn_model)
     logger.info(fc_model)
     if args.area:
         logger.info(lr_model)
@@ -261,23 +277,34 @@ def gcn(graph, train, test, args):
         loss.backward()
         optimizer.step()
 
+        y_pred = (logits >= 0.5).float().squeeze(dim = -1).numpy()
+        y_truth = train[:, -1].ravel()
+        wandb.log({"GCN Train/Pre": precision(y_pred, y_truth), "round": epoch})
+        wandb.log({"GCN Train/Rec": recall(y_pred, y_truth), "round": epoch})
+        wandb.log({"GCN Train/loss": loss.item(), "round": epoch})
+
         logger.debug('Epoch %d | Loss: %.4f' % (epoch, loss.item()))
 
-        if epoch == args.max_itr - 1:
-            with torch.no_grad():
-                test_x = torch.from_numpy(np.array(list(map(pair2vec, test[:, 0], test[:, 1])))).float()
-                logits = fc_model(test_x)
+        with torch.no_grad():
+            test_x = torch.from_numpy(np.array(list(map(pair2vec, test[:, 0], test[:, 1])))).float()
+            test_y = torch.from_numpy(test[:, -1]).float()
+            logits = fc_model(test_x)
 
-                if args.area:
-                    test_area = torch.from_numpy(test[:,2]).float()
-                    test_area = torch.reshape(test_area, (-1, 1))
-                    logits = lr_model(torch.cat((logits, test_area), 1))
+            if args.area:
+                test_area = torch.from_numpy(test[:,2]).float()
+                test_area = torch.reshape(test_area, (-1, 1))
+                logits = lr_model(torch.cat((logits, test_area), 1))
 
-                y_pred = (logits >= 0.5).float().squeeze(dim = -1).numpy()
-                y_truth = test[:, -1].ravel()
-                # show the precision and recall
-                logger.info("gcn's precision {0:.3f}".format(precision(y_pred, y_truth)))
-                logger.info("gcn's recall {0:.3f}".format(recall(y_pred, y_truth)))
+            loss = nn.BCELoss()(logits.squeeze(dim = -1), test_y.squeeze(dim = -1))
+            y_pred = (logits >= 0.5).float().squeeze(dim = -1).numpy()
+            y_truth = test[:, -1].ravel()
+            wandb.log({"GCN Test/Pre": precision(y_pred, y_truth), "round": epoch})
+            wandb.log({"GCN Test/Rec": recall(y_pred, y_truth), "round": epoch})
+            wandb.log({"GCN Test/loss": loss.item(), "round": epoch})
+
+    # show the precision and recall        
+    logger.info("gcn's precision {0:.3f}".format(precision(y_pred, y_truth)))
+    logger.info("gcn's recall {0:.3f}".format(recall(y_pred, y_truth)))
 
 
 def data_splitting(split_ratio):
@@ -348,6 +375,10 @@ def args_parser():
     parser.add_argument("--num_walks", type = int, default = 200, 
                         help= "the number of walks for node2vec. Default 200.")
 
+    # set the number of conv layers in GCN
+    parser.add_argument("--conv", type = int, default = 2, 
+                        help= "the the number of conv layers in GCN. Default 2.")
+
     # set the size of hidden layer of fully connected layer
     parser.add_argument("--hidden", type = int, default = 8, 
                         help= "the size of hidden layer of fully connected layer. Default 8.")
@@ -398,6 +429,10 @@ def args_parser():
         logger.warning("The size of hidden layer of full connected layer is illegal. Turn to default round(0.8 * args.embed).")
         args.hidden = round(0.8 * args.embed)
 
+    if args.conv < 1 or args.conv > 5:
+        logger.warning("The number of conv layers in GCN is illegal. Turn to default 2.")
+        args.conv = 2
+
     return args
 
 
@@ -414,6 +449,15 @@ def main():
      # show the hyperparameters
     logger.info("---------hyperparameter setting---------")
     logger.info(args)
+
+
+    # wandb initialization   
+    logger.info("----------Wandb initialization---------") 
+    wandb.init(
+        project="NED",
+        name="NED-itr" + str(args.max_itr) + "-lr" + str(args.lr) + "-embed-size" + str(args.embed) + "-conv"+str(args.conv),
+        config=args
+    )
 
     # set the random seed.
     np.random.seed(args.seed)

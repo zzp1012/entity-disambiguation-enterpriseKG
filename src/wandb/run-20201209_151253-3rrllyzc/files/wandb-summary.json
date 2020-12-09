@@ -1,0 +1,1 @@
+{"GCN Train/Pre": 1.0, "round": 3999, "_step": 23999, "_runtime": 94, "_timestamp": 1607498067, "GCN Train/Rec": 0.8181818181818182, "GCN Train/loss": 0.051681313663721085, "GCN Test/Pre": 0.2222222222222222, "GCN Test/Rec": 0.2857142857142857, "GCN Test/loss": 0.4709957540035248}
