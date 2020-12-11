@@ -32,8 +32,7 @@ Once we open source the code for `20FA VE444 term Project` and if you want to re
 ├── data
 │   ├── com2com.csv # contains the investment relationships between companies.
 │   ├── com_info.csv # contains the basic information about the companies.
-│   ├── labels.csv # contains the tuple of investors with same name and a label indicating whether
-|   |              # they are the same entity or not
+│   ├── labels.csv # contains the tuple of investors with same name and a label indicating whether they are the same entity or not
 │   └── person2com.csv # contains the investment relationships between companies and investor.
 ├── final-rpt
 │   ├── acmart.cls # the template of final report.
