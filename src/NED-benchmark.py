@@ -328,6 +328,9 @@ def data_splitting(split_ratio):
     # create train and test
     train = dataset[0:round(len(dataset) * split_ratio)]
     test = dataset[round(len(dataset) * split_ratio):]
+
+    logger.info("Training set: Total {:.3f}, FP {:.3f}".format(len(train), np.sum(train[:, -1])))
+    logger.info("Testing set: Total {:.3f}, FP {:.3f}".format(len(test), np.sum(test[:, -1])))
     return dataset, train, test
 
 
