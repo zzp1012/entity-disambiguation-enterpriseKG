@@ -65,8 +65,7 @@ Once we open source the code for `20FA VE444 term Project` and if you want to re
 │   └── README.md # the ideas of the projects.
 ├── README.md # overview of the repo, readme
 └── src 
-    ├── NED-benchmark.py # the only source code of our project, used to benchmark different methods to
-    |                    #solve NED problem
+    ├── NED-benchmark.py # the only source code of our project, used to benchmark different methods to solve NED problem
     └── pretrained
         └── node2vec-embedd.txt # the pretrained node embedding vectors using node2vec.
 ```
