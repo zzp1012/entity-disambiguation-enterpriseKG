@@ -35,6 +35,13 @@ Once we open source the code for `20FA VE444 term Project` and if you want to re
 │   ├── labels.csv # contains the tuple of investors with same name and a label indicating whether
 |   |              # they are the same entity or not
 │   └── person2com.csv # contains the investment relationships between companies and investor.
+├── final-rpt
+│   ├── acmart.cls # the template of final report.
+│   ├── ACM-Reference-Format.bst # the template of final report.
+│   ├── figures # the directory containing all the figures used in the final report.
+│   ├── final-rpt.pdf # the final report of this project
+│   ├── main.tex # the tex file of the final report.
+│   └── sample.bib # the bibtex file of the final report.
 ├── images # basically contain some images.
 ├── milestone-rpt
 │   ├── milestone-rpt.md # the source code of milestone-rpt.
