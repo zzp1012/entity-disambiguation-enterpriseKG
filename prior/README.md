@@ -3,18 +3,13 @@
 </div>
 <center>
 	<h1>
-		VE444 Networks
-	</h1>
-</center> 
-<center>
-	<h2>
 		Prior Work
-	</h2>
+	</h1>
 </center>
 <center>
-   <h3>
+   <h2>
        FA 2020
-    </h3> 
+    </h2> 
 </center>
 
 
