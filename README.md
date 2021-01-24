@@ -2,19 +2,14 @@
 	<img src="images/ji_logo.png" alt="Jilogo" style="zoom:60%;" />
 </div>
 <center>
-	<h2>
-		VE444 Networks
-	</h2>
-</center> 
-<center>
-	<h3>
+	<h1>
 		Named Disambiguation Problem
-	</h3>
+	</h1>
 </center>
 <center>
-   <h4>
+   <h2>
        FA 2020
-    </h4> 
+    </h2> 
 </center>
 
 
@@ -22,9 +17,7 @@
 
 ### Abstract
 
-This project is used to help our VE444 Project team work together. 
-
-Once we open source the code for `20FA VE444 term Project` and if you want to refer to our work, please follow the Joint Institute’s honor code and don’t plagiarize these codes directly.
+Benchmark different node embedding methods to deal with named entity disambiguation problem in Enterprise KG.
 
 ### Repo Structure
 
@@ -146,10 +139,6 @@ git push origin zzp1012 # create branch 'zzp1012' remotely on github and copy yo
 git pull origin master # synchronize files on remote master branch.
 git pull origin "you branch name" # the 'master' can be replaced by the name of the other branch created on remote project on github, then you can synchronize files on the specific remote branch.
 ```
-
-### Reference
-
-[1] Zhu, Y., 2020. *Ve444 Networks Project*.
 
 ---------------------------------------------------------------
 
