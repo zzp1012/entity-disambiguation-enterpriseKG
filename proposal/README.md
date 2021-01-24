@@ -2,19 +2,14 @@
 	<img src="../images/ji_logo.png" alt="Jilogo" style="zoom:40%;" />
 </div>
 <center>
-	<h2>
-		VE444 Networks
-	</h2>
-</center> 
-<center>
-	<h3>
+	<h1>
 		Project Proposal Draft
-	</h3>
+	</h1>
 </center>
 <center>
-   <h4>
+   <h2>
        FA 2020
-    </h4> 
+    </h2> 
 </center>
 ------------------------------------------
 
